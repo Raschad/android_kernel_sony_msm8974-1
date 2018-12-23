@@ -2008,6 +2008,10 @@ static int _sha_complete(struct qce_device *pce_dev)
 	uint32_t status;
 
 	areq = (struct ahash_request *) pce_dev->areq;
+	if (!areq) {
+		pr_err("sha operation error. areq is NULL\n");
+		return -ENXIO;
+	}
 	qce_dma_unmap_sg(pce_dev->pdev, areq->src, pce_dev->src_nents,
 				DMA_TO_DEVICE);
 	memcpy(digest, (char *)(&pce_dev->ce_sps.result->auth_iv[0]),
@@ -5262,12 +5266,12 @@ static int __qce_init_clk(struct qce_device *pce_dev)
 	if (!IS_ERR(ce_core_src_clk)) {
 		pce_dev->ce_core_src_clk = ce_core_src_clk;
 
-		/* Set the core src clk @100Mhz */
-		rc = clk_set_rate(pce_dev->ce_core_src_clk, 100000000);
+		/* Set the core src clk @150Mhz */
+		rc = clk_set_rate(pce_dev->ce_core_src_clk, 150000000);
 		if (rc) {
 			clk_put(pce_dev->ce_core_src_clk);
 			pce_dev->ce_core_src_clk = NULL;
-			pr_err("Unable to set the core src clk @100Mhz.\n");
+			pr_err("Unable to set the core src clk @150Mhz.\n");
 			goto err_clk;
 		}
 	} else {

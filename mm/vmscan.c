@@ -54,6 +54,8 @@
 #define CREATE_TRACE_POINTS
 #include <trace/events/vmscan.h>
 
+int max_swappiness = 200;
+
 struct scan_control {
 	/* Incremented by the number of inactive pages that were scanned */
 	unsigned long nr_scanned;
@@ -268,6 +270,10 @@ unsigned long shrink_slab(struct shrink_control *shrink,
 		long new_nr;
 		long batch_size = shrinker->batch ? shrinker->batch
 						  : SHRINK_BATCH;
+		long min_cache_size = batch_size;
+
+		if (current_is_kswapd())
+			min_cache_size = 0;
 
 		max_pass = do_shrinker_shrink(shrinker, shrink, 0);
 		if (max_pass <= 0)
@@ -319,8 +325,11 @@ unsigned long shrink_slab(struct shrink_control *shrink,
 					nr_pages_scanned, lru_pages,
 					max_pass, delta, total_scan);
 
-		while (total_scan >= batch_size) {
+		while (total_scan > min_cache_size) {
 			int nr_before;
+
+			if (total_scan < batch_size)
+				batch_size = total_scan;
 
 			nr_before = do_shrinker_shrink(shrinker, shrink, 0);
 			shrink_ret = do_shrinker_shrink(shrinker, shrink,
@@ -1223,14 +1232,6 @@ static int __too_many_isolated(struct zone *zone, int file,
 		}
 	}
 
-	/*
-	 * GFP_NOIO/GFP_NOFS callers are allowed to isolate more pages, so they
-	 * won't get blocked by normal direct-reclaimers, forming a circular
-	 * deadlock.
-	 */
-	if ((sc->gfp_mask & GFP_IOFS) == GFP_IOFS)
-		inactive >>= 3;
-
 	return isolated > inactive;
 }
 
@@ -1755,7 +1756,7 @@ static void get_scan_count(struct mem_cgroup_zone *mz, struct scan_control *sc,
 	 * This scanning priority is essentially the inverse of IO cost.
 	 */
 	anon_prio = vmscan_swappiness(sc);
-	file_prio = 200 - vmscan_swappiness(sc);
+	file_prio = max_swappiness - vmscan_swappiness(sc);
 
 	/*
 	 * OK, so we have swap space and a fair amount of page cache
@@ -2441,6 +2442,10 @@ static bool sleeping_prematurely(pg_data_t *pgdat, int order, long remaining,
 	int i;
 	unsigned long balanced = 0;
 	bool all_zones_ok = true;
+
+	/* If kswapd has been running too long, just sleep */
+	if (need_resched())
+		return false;
 
 	/* If a direct reclaimer woke kswapd within HZ/10, it's premature */
 	if (remaining)

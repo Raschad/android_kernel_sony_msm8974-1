@@ -25,6 +25,11 @@
 #include <linux/qpnp/pwm.h>
 #include <linux/err.h>
 #include <linux/regulator/consumer.h>
+#include <linux/display_state.h>
+
+#ifdef CONFIG_POWERSUSPEND
+#include <linux/powersuspend.h>
+#endif
 
 #include "mdss_mdp.h"
 #include "mdss_dsi.h"
@@ -40,6 +45,13 @@
 
 #define CHANGE_FPS_MIN 36
 #define CHANGE_FPS_MAX 63
+
+bool display_on = true;
+
+bool is_display_on()
+{
+	return display_on;
+}
 
 struct device virtdev;
 
@@ -324,6 +336,10 @@ static int mdss_dsi_panel_reset_seq(struct mdss_panel_data *pdata, int enable)
 		pr_err("%s: Invalid input data\n", __func__);
 		return -EINVAL;
 	}
+
+#ifdef CONFIG_POWERSUSPEND
+	set_power_suspend_state_panel_hook(POWER_SUSPEND_INACTIVE);
+#endif
 
 	ctrl_pdata = container_of(pdata, struct mdss_dsi_ctrl_pdata,
 				panel_data);
@@ -1065,6 +1081,8 @@ static int mdss_dsi_panel_on(struct mdss_panel_data *pdata)
 		return -EINVAL;
 	}
 
+	display_on = true;
+
 	ctrl_pdata = container_of(pdata, struct mdss_dsi_ctrl_pdata,
 				panel_data);
 
@@ -1203,6 +1221,12 @@ static int mdss_dsi_panel_off(struct mdss_panel_data *pdata)
 		fpsd.fpks = 0;
 		pr_info("%s: vsyncs_per_ksecs is invalid\n", __func__);
 	}
+
+	display_on = false;
+
+#ifdef CONFIG_POWERSUSPEND
+	set_power_suspend_state_panel_hook(POWER_SUSPEND_ACTIVE);
+#endif
 
 	pr_debug("%s: Done\n", __func__);
 

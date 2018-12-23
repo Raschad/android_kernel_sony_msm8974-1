@@ -282,7 +282,6 @@ config ARCH_MSM8974
 	select MEMORY_HOLE_CARVEOUT
 	select MSM_RPM_STATS_LOG
 	select QMI_ENCDEC
-	select MSM_ULTRASOUND_B
 	select MSM_RPM_LOG
 	select ARCH_WANT_KMAP_ATOMIC_FLUSH
 	select KRAIT_REGULATOR
@@ -2027,6 +2026,25 @@ config MSM_DEVFREQ_CPUBW
 	  agnostic interface to so that some of the devfreq governors can be
 	  shared across SoCs.
 
+config CPU_OC
+	bool "allow 2.3 GHz OC bin"
+	default n
+	help
+	  Unlock the CPU Overclock freq speed @ 2.3 GHz
+
+config OC_ULTIMATE
+	bool "allow 2.419 GHz max OC option"
+	depends on CPU_OC
+	default n
+	help
+	  Unlock the ultimate Overclock freq speed @ 2.419 GHz
+
+config MSM_CPU_VOLTAGE_CONTROL
+	bool "Userspace CPU Voltage Control"
+	default y
+	help
+	  This enables userspace CPU Voltage Control.
+
 config MSM_AVS_HW
 	bool "Enable Adaptive Voltage Scaling (AVS)"
 	default n
@@ -3176,6 +3194,13 @@ config WALL_CLK_SYSFS
 	help
 	 Support the wallclk directory in sysfs filesystem to enable the
 	 wall clock simulation and read the current SFN.
+ 
+config FORCE_FAST_CHARGE
+	bool "Force AC charge mode at will"
+	default y
+	help
+	  A simple sysfs interface to force adapters that
+	  are detected as USB to charge as AC.
 
 config KRAIT_REGULATOR
 	bool "Support Kraits powered via ganged regulators in the pmic"

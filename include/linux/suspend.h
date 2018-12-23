@@ -387,7 +387,7 @@ extern bool pm_wakeup_pending(void);
 extern bool pm_get_wakeup_count(unsigned int *count, bool block);
 extern bool pm_save_wakeup_count(unsigned int count);
 extern void pm_wakep_autosleep_enabled(bool set);
-
+extern void pm_get_active_wakeup_sources(char *pending_sources, size_t max);
 static inline void lock_system_sleep(void)
 {
 	current->flags |= PF_FREEZER_SKIP;
@@ -480,5 +480,7 @@ static inline void page_key_memorize(unsigned long *pfn) {}
 static inline void page_key_write(void *address) {}
 
 #endif /* !CONFIG_ARCH_SAVE_PAGE_KEYS */
+
+void print_active_wakeup_sources(void);
 
 #endif /* _LINUX_SUSPEND_H */

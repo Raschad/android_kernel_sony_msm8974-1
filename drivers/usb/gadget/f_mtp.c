@@ -551,6 +551,9 @@ static ssize_t mtp_read(struct file *fp, char __user *buf,
 
 	DBG(cdev, "mtp_read(%d)\n", count);
 
+	if (!dev->ep_out)
+		return -EINVAL;
+
 	len = ALIGN(count, dev->ep_out->maxpacket);
 
 	if (len > mtp_rx_req_len)
@@ -648,6 +651,9 @@ static ssize_t mtp_write(struct file *fp, const char __user *buf,
 	int ret;
 
 	DBG(cdev, "mtp_write(%d)\n", count);
+
+	if (!dev->ep_in)
+		return -EINVAL;
 
 	spin_lock_irq(&dev->lock);
 	if (dev->state == STATE_CANCELED) {
@@ -925,6 +931,12 @@ static void receive_file_work(struct work_struct *data)
 			if (count < read_req->length)
 				read_req->actual = (read_req->actual > count ?
 						count : read_req->actual);
+
+			if (read_req->status) {
+				r = read_req->status;
+				break;
+			}
+
 			/* if xfer_file_length is 0xFFFFFFFF, then we read until
 			 * we get a zero length packet
 			 */
@@ -1442,18 +1454,20 @@ static int mtp_bind_config(struct usb_configuration *c, bool ptp_config)
 
 	dev->cdev = c->cdev;
 	dev->function.name = "mtp";
-	dev->function.strings = mtp_strings;
 	if (ptp_config) {
-		dev->function.descriptors = fs_ptp_descs;
+//		dev->function.strings = ptp_strings;
+		dev->function.fs_descriptors = fs_ptp_descs;
 		dev->function.hs_descriptors = hs_ptp_descs;
 		if (gadget_is_superspeed(c->cdev->gadget))
 			dev->function.ss_descriptors = ss_ptp_descs;
 	} else {
-		dev->function.descriptors = fs_mtp_descs;
+		dev->function.strings = mtp_strings;
+		dev->function.fs_descriptors = fs_mtp_descs;
 		dev->function.hs_descriptors = hs_mtp_descs;
 		if (gadget_is_superspeed(c->cdev->gadget))
 			dev->function.ss_descriptors = ss_mtp_descs;
 	}
+
 	dev->function.bind = mtp_function_bind;
 	dev->function.unbind = mtp_function_unbind;
 	dev->function.set_alt = mtp_function_set_alt;
