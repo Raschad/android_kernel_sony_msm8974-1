@@ -10,7 +10,7 @@
 set -e -o pipefail
 
 NAME=RZ_kernel
-VERSION=v3.0
+VERSION=v3.5
 
 export ARCH=arm
 export LOCALVERSION=-${VERSION}
@@ -112,15 +112,15 @@ function menu() {
 function select_device() {
 	echo "Select which device you want to build for";
 	echo "1. Sony Xperia Z1 (honami)";
-	echo "2. Sony Xperia Z3 (leo)";
+	echo "2. Sony Xperia Z1 compact (amami)";
 	read -n 1 -p "Choice: " -s device;	
 	case ${device} in
 		1) export DEFCONFIG=lineageos_rhine_honami_row_defconfig
 		   export DEVICE="Sony Xperia Z1 (honami)"
 		   export DTBTOOL_CMD="./scripts/dtbTool -o ${DT_IMG} -s 2048 $(pwd)/output/arch/arm/boot/"
 		   menu;;
-		2) export DEFCONFIG=lineageos_shinano_leo_defconfig
-		   export DEVICE="Sony Xperia Z3 (leo)"
+		2) export DEFCONFIG=lineageos_rhine_amami_row_defconfig
+		   export DEVICE="Sony Xperia Z1 compact (amami)"
 		   export DTBTOOL_CMD="./scripts/dtbTool -o ${DT_IMG} -2 -s 2048 $(pwd)/output/arch/arm/boot/"
 		   menu;;
 	esac
