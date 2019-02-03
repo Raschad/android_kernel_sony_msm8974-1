@@ -112,15 +112,15 @@ function menu() {
 function select_device() {
 	echo "Select which device you want to build for";
 	echo "1. Sony Xperia Z1 (honami)";
-	echo "2. Sony Xperia Z1 compact (amami)";
+	echo "2. Sony Xperia Z2 (sirius)";
 	read -n 1 -p "Choice: " -s device;	
 	case ${device} in
 		1) export DEFCONFIG=lineageos_rhine_honami_row_defconfig
 		   export DEVICE="Sony Xperia Z1 (honami)"
 		   export DTBTOOL_CMD="./scripts/dtbTool -o ${DT_IMG} -s 2048 $(pwd)/output/arch/arm/boot/"
 		   menu;;
-		2) export DEFCONFIG=lineageos_rhine_amami_row_defconfig
-		   export DEVICE="Sony Xperia Z1 compact (amami)"
+		2) export DEFCONFIG=lineageos_shinano_sirius_defconfig
+		   export DEVICE="Sony Xperia Z2 (sirius)"
 		   export DTBTOOL_CMD="./scripts/dtbTool -o ${DT_IMG} -2 -s 2048 $(pwd)/output/arch/arm/boot/"
 		   menu;;
 	esac
